@@ -1,12 +1,20 @@
-FROM busybox:latest
-ENV PORT=8000
-LABEL maintainer="Chris <c@crccheck.com>"
+# Base Image
+FROM golang:latest
 
-ADD index.html /www/index.html
+# Set the Current Working Directory inside the container
+WORKDIR /app
 
-# EXPOSE $PORT
+# Copy everything from the current directory to the PWD(Present Working Directory) inside the container
+COPY . .
 
-HEALTHCHECK CMD nc -z localhost $PORT
+# Download all the dependencies
+RUN go mod download
 
-# Create a basic webserver and run it until the container is stopped
-CMD echo "httpd started" && trap "exit 0;" TERM INT; httpd -v -p $PORT -h /www -f & wait
+# Build the Go app
+RUN go build -o main .
+
+# Expose port 8080 to the outside world
+EXPOSE 8080
+
+# Command to run the executable
+CMD ["./main"]
