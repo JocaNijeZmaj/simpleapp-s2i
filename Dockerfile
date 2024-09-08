@@ -1,17 +1,12 @@
-# Use a lightweight web server image
-FROM nginx:alpine
+FROM busybox:latest
+ENV PORT=8000
+LABEL maintainer="Chris <c@crccheck.com>"
 
-# Create a writable cache directory
-RUN mkdir -p /tmp/nginx-cache && chmod 777 /tmp/nginx-cache
+ADD index.html /www/index.html
 
-# Copy your HTML file to the appropriate directory
-COPY ./index.html /usr/share/nginx/html/index.html
+# EXPOSE $PORT
 
-# Update the Nginx configuration
-RUN sed -i 's|/var/cache/nginx|/tmp/nginx-cache|g' /etc/nginx/nginx.conf /etc/nginx/conf.d/default.conf
+HEALTHCHECK CMD nc -z localhost $PORT
 
-# Expose port 80
-EXPOSE 80
-
-# Start Nginx server
-CMD ["nginx", "-g", "daemon off;"]
+# Create a basic webserver and run it until the container is stopped
+CMD echo "httpd started" && trap "exit 0;" TERM INT; httpd -v -p $PORT -h /www -f & wait
